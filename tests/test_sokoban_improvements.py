@@ -1,6 +1,6 @@
 import unittest
 
-from sokoban import LEVELS, is_deadlocked, load_level, move_player, undo
+from sokoban import LEVELS, is_cleared, is_deadlocked, load_level, move_player, undo
 from sokoban_exercise import apply_move, completed, new_board
 
 
@@ -9,6 +9,12 @@ class SokobanImprovementTests(unittest.TestCase):
         self.assertEqual(len(LEVELS), 4)
         for level in LEVELS:
             load_level(level)
+
+    def test_fourth_level_can_be_completed(self):
+        game = load_level(LEVELS[3])
+        for key in "awawwdddssdww":
+            self.assertTrue(move_player(game, key), key)
+        self.assertTrue(is_cleared(game))
 
     def test_push_count_and_undo_restore_boxes(self):
         game = load_level([
