@@ -62,6 +62,7 @@ LEVELS = [
 
 DIRECTIONS = {"w": (0, -1), "s": (0, 1), "a": (-1, 0), "d": (1, 0)}
 MOVE_LIMITS = (6, 12, 32, 30, 12, 30)
+STAR_THRESHOLDS = ((1, 3), (4, 8), (14, 21), (13, 20), (4, 8), (13, 20))
 
 
 def load_level(rows):
@@ -209,10 +210,23 @@ def choose_challenge_mode():
 
 
 def format_level_summary(level_number, game):
+    stars = stars_for_level(level_number, game["moves"])
+    rating = "★" * stars + "☆" * (3 - stars)
     return (
-        f"ステージ{level_number}の結果: "
+        f"ステージ{level_number}の結果: {rating} ({stars}/3) | "
         f"移動回数 {game['moves']}回 / 押した回数 {game['pushes']}回"
     )
+
+
+def stars_for_level(level_number, moves):
+    if not 1 <= level_number <= len(STAR_THRESHOLDS):
+        raise ValueError("ステージ番号が範囲外です")
+    three_star_limit, two_star_limit = STAR_THRESHOLDS[level_number - 1]
+    if moves <= three_star_limit:
+        return 3
+    if moves <= two_star_limit:
+        return 2
+    return 1
 
 
 def main():

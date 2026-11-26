@@ -6,6 +6,7 @@ from unittest.mock import patch
 from sokoban import (
     LEVELS,
     MOVE_LIMITS,
+    STAR_THRESHOLDS,
     choose_challenge_mode,
     format_level_summary,
     is_cleared,
@@ -15,6 +16,7 @@ from sokoban import (
     load_level,
     main,
     move_player,
+    stars_for_level,
     undo,
 )
 from sokoban_demo import LEVELS as DEMO_LEVELS
@@ -54,8 +56,14 @@ class SokobanImprovementTests(unittest.TestCase):
         game["pushes"] = 3
         self.assertEqual(
             format_level_summary(2, game),
-            "ステージ2の結果: 移動回数 12回 / 押した回数 3回",
+            "ステージ2の結果: ★☆☆ (1/3) | 移動回数 12回 / 押した回数 3回",
         )
+
+    def test_star_rating_uses_per_level_move_thresholds(self):
+        self.assertEqual(len(STAR_THRESHOLDS), len(LEVELS))
+        self.assertEqual(stars_for_level(1, 1), 3)
+        self.assertEqual(stars_for_level(1, 2), 2)
+        self.assertEqual(stars_for_level(1, 4), 1)
 
     def test_move_limit_is_optional_and_stops_at_limit(self):
         game = load_level(LEVELS[0])
