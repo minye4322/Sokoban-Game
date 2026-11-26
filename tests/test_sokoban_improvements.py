@@ -6,9 +6,11 @@ from unittest.mock import patch
 from sokoban import (
     LEVELS,
     choose_start_level,
+    choose_move_limit,
     format_level_summary,
     is_cleared,
     is_deadlocked,
+    is_move_limit_reached,
     load_level,
     move_player,
     undo,
@@ -44,6 +46,19 @@ class SokobanImprovementTests(unittest.TestCase):
             format_level_summary(2, game),
             "ステージ2の結果: 移動回数 12回 / 押した回数 3回",
         )
+
+    def test_move_limit_is_optional_and_stops_at_limit(self):
+        game = load_level(LEVELS[0])
+        self.assertFalse(is_move_limit_reached(game, None))
+        self.assertFalse(is_move_limit_reached(game, 2))
+        game["moves"] = 2
+        self.assertTrue(is_move_limit_reached(game, 2))
+
+    def test_move_limit_selection_validates_choice_and_limit(self):
+        with patch("builtins.input", side_effect=["maybe", "y", "0", "7"]), redirect_stdout(StringIO()):
+            self.assertEqual(choose_move_limit(), 7)
+        with patch("builtins.input", return_value="n"), redirect_stdout(StringIO()):
+            self.assertIsNone(choose_move_limit())
 
     def test_push_count_and_undo_restore_boxes(self):
         game = load_level([

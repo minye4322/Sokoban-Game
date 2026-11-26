@@ -78,7 +78,7 @@ def is_deadlocked(game, box):
     return ((blocked_left or blocked_right) and (blocked_up or blocked_down))
 
 
-def draw_game(game):
+def draw_game(game, move_limit=None):
     print("\n" * 2 + "=== SOKOBAN ===")
     print("# 壁   . ゴール   $ 箱   @ プレイヤー   * ゴール上の箱")
     for y in range(game["height"]):
@@ -99,6 +99,8 @@ def draw_game(game):
     if any(is_deadlocked(game, pos) for pos in game["boxes"]):
         print("警告: ゴール外で箱が角にはまりました。Uで戻すかRで再開できます。")
     print(f"移動回数: {game['moves']} | 押した回数: {game['pushes']}")
+    if move_limit is not None:
+        print(f"手数上限: {move_limit} | 残り: {max(0, move_limit - game['moves'])}")
     print("WASD: 移動 / U: 一手戻す / R: リスタート / Q: 終了")
 
 
@@ -140,6 +142,10 @@ def is_cleared(game):
     return game["boxes"] == game["goals"]
 
 
+def is_move_limit_reached(game, move_limit):
+    return move_limit is not None and game["moves"] >= move_limit
+
+
 def choose_start_level():
     while True:
         print("開始するステージを選んでください:")
@@ -153,6 +159,21 @@ def choose_start_level():
         print("有効なステージ番号を入力してください。")
 
 
+def choose_move_limit():
+    while True:
+        choice = input("手数上限チャレンジを有効にしますか？ (Y/N) > ").strip().lower()
+        if choice in ("n", "no"):
+            return None
+        if choice in ("y", "yes"):
+            break
+        print("YまたはNを入力してください。")
+    while True:
+        limit = input("このステージの手数上限を入力してください > ").strip()
+        if limit.isdigit() and int(limit) > 0:
+            return int(limit)
+        print("1以上の整数を入力してください。")
+
+
 def format_level_summary(level_number, game):
     return (
         f"ステージ{level_number}の結果: "
@@ -164,9 +185,10 @@ def main():
     level_index = choose_start_level()
     if level_index is None:
         return
+    move_limit = choose_move_limit()
     game = load_level(LEVELS[level_index])
     while True:
-        draw_game(game)
+        draw_game(game, move_limit)
         if is_cleared(game):
             print("クリア！")
             print(format_level_summary(level_index + 1, game))
@@ -177,6 +199,8 @@ def main():
             input("Enterを押して次へ...")
             game = load_level(LEVELS[level_index])
             continue
+        if is_move_limit_reached(game, move_limit):
+            print("手数上限に達しました。Uで一手戻すか、Rでやり直してください。")
         key = input("操作 > ").strip().lower()[:1]
         if key == "q":
             break
@@ -184,7 +208,7 @@ def main():
             game = load_level(LEVELS[level_index])
         elif key == "u":
             undo(game)
-        else:
+        elif not is_move_limit_reached(game, move_limit):
             move_player(game, key)
 
 
