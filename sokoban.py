@@ -1,4 +1,7 @@
 
+from collections import deque
+
+
 LEVELS = [
     [
         "#########",
@@ -101,7 +104,7 @@ def draw_game(game, move_limit=None):
     print(f"移動回数: {game['moves']} | 押した回数: {game['pushes']}")
     if move_limit is not None:
         print(f"手数上限: {move_limit} | 残り: {max(0, move_limit - game['moves'])}")
-    print("WASD: 移動 / U: 一手戻す / R: リスタート / Q: 終了")
+    print("WASD: 移動 / U: 一手戻す / H: ヒント / R: リスタート / Q: 終了")
 
 
 def inside(game, pos):
@@ -144,6 +147,35 @@ def is_cleared(game):
 
 def is_move_limit_reached(game, move_limit):
     return move_limit is not None and game["moves"] >= move_limit
+
+
+def find_hint(game):
+    if is_cleared(game):
+        return None
+    initial_state = (game["player"], frozenset(game["boxes"]))
+    queue = deque([(initial_state, None)])
+    visited = {initial_state}
+    while queue:
+        (player, boxes), first_move = queue.popleft()
+        for key, (dx, dy) in DIRECTIONS.items():
+            target = (player[0] + dx, player[1] + dy)
+            if not inside(game, target) or target in game["walls"]:
+                continue
+            next_boxes = boxes
+            if target in boxes:
+                pushed_to = (target[0] + dx, target[1] + dy)
+                if (not inside(game, pushed_to) or pushed_to in game["walls"]
+                        or pushed_to in boxes):
+                    continue
+                next_boxes = frozenset((boxes - {target}) | {pushed_to})
+            state = (target, next_boxes)
+            if state in visited:
+                continue
+            if next_boxes == game["goals"]:
+                return first_move or key
+            visited.add(state)
+            queue.append((state, first_move or key))
+    return None
 
 
 def choose_start_level():
@@ -208,6 +240,14 @@ def main():
             game = load_level(LEVELS[level_index])
         elif key == "u":
             undo(game)
+        elif key == "h":
+            hint = find_hint(game)
+            if hint is None:
+                message = "この盤面はすでにクリア済みです。" if is_cleared(game) else "解けるルートが見つかりません。"
+                print(message)
+            else:
+                directions = {"w": "上", "a": "左", "s": "下", "d": "右"}
+                print(f"ヒント: {hint.upper()} ({directions[hint]}) へ進んでください。")
         elif not is_move_limit_reached(game, move_limit):
             move_player(game, key)
 

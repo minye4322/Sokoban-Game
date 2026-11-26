@@ -11,6 +11,7 @@ from sokoban import (
     is_cleared,
     is_deadlocked,
     is_move_limit_reached,
+    find_hint,
     load_level,
     move_player,
     undo,
@@ -59,6 +60,24 @@ class SokobanImprovementTests(unittest.TestCase):
             self.assertEqual(choose_move_limit(), 7)
         with patch("builtins.input", return_value="n"), redirect_stdout(StringIO()):
             self.assertIsNone(choose_move_limit())
+
+    def test_hint_finds_shortest_first_move_without_changing_game(self):
+        game = load_level(LEVELS[0])
+        original_player = game["player"]
+        original_boxes = game["boxes"].copy()
+        self.assertEqual(find_hint(game), "w")
+        self.assertEqual(game["player"], original_player)
+        self.assertEqual(game["boxes"], original_boxes)
+        self.assertEqual(game["moves"], 0)
+
+    def test_hint_reports_no_route_for_stuck_box(self):
+        game = load_level([
+            "#####",
+            "#$  #",
+            "##@.#",
+            "#####",
+        ])
+        self.assertIsNone(find_hint(game))
 
     def test_push_count_and_undo_restore_boxes(self):
         game = load_level([
