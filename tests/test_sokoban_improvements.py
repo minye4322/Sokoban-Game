@@ -17,12 +17,14 @@ from sokoban import (
     move_player,
     undo,
 )
+from sokoban_demo import LEVELS as DEMO_LEVELS
 from sokoban_exercise import apply_move, completed, new_board
 
 
 class SokobanImprovementTests(unittest.TestCase):
     def test_four_levels_are_loaded(self):
-        self.assertEqual(len(LEVELS), 4)
+        self.assertEqual(len(LEVELS), 6)
+        self.assertEqual(len(DEMO_LEVELS), len(LEVELS))
         for level in LEVELS:
             load_level(level)
 
@@ -31,6 +33,14 @@ class SokobanImprovementTests(unittest.TestCase):
         for key in "awawwdddssdww":
             self.assertTrue(move_player(game, key), key)
         self.assertTrue(is_cleared(game))
+
+    def test_new_levels_can_be_completed(self):
+        solutions = ("aaww", "awsawwddddsdw")
+        for rows, solution in zip(LEVELS[4:], solutions):
+            game = load_level(rows)
+            for key in solution:
+                self.assertTrue(move_player(game, key), key)
+            self.assertTrue(is_cleared(game))
 
     def test_game_starts_at_level_one_without_level_selection(self):
         output = StringIO()
