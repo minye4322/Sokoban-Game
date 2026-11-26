@@ -5,8 +5,9 @@ from unittest.mock import patch
 
 from sokoban import (
     LEVELS,
+    MOVE_LIMITS,
     choose_start_level,
-    choose_move_limit,
+    choose_challenge_mode,
     format_level_summary,
     is_cleared,
     is_deadlocked,
@@ -55,11 +56,21 @@ class SokobanImprovementTests(unittest.TestCase):
         game["moves"] = 2
         self.assertTrue(is_move_limit_reached(game, 2))
 
-    def test_move_limit_selection_validates_choice_and_limit(self):
-        with patch("builtins.input", side_effect=["maybe", "y", "0", "7"]), redirect_stdout(StringIO()):
-            self.assertEqual(choose_move_limit(), 7)
+    def test_challenge_mode_uses_fixed_limits_without_asking_for_count(self):
+        self.assertEqual(len(MOVE_LIMITS), len(LEVELS))
+        with patch("builtins.input", side_effect=["maybe", "y"]), redirect_stdout(StringIO()):
+            self.assertTrue(choose_challenge_mode())
         with patch("builtins.input", return_value="n"), redirect_stdout(StringIO()):
-            self.assertIsNone(choose_move_limit())
+            self.assertFalse(choose_challenge_mode())
+
+    def test_every_level_can_be_solved_within_its_fixed_limit(self):
+        for rows, move_limit in zip(LEVELS, MOVE_LIMITS):
+            game = load_level(rows)
+            while not is_cleared(game):
+                hint = find_hint(game)
+                self.assertIsNotNone(hint)
+                self.assertTrue(move_player(game, hint))
+                self.assertLessEqual(game["moves"], move_limit)
 
     def test_hint_finds_shortest_first_move_without_changing_game(self):
         game = load_level(LEVELS[0])

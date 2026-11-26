@@ -43,6 +43,7 @@ LEVELS = [
 ]
 
 DIRECTIONS = {"w": (0, -1), "s": (0, 1), "a": (-1, 0), "d": (1, 0)}
+MOVE_LIMITS = (6, 12, 32, 30)
 
 
 def load_level(rows):
@@ -191,19 +192,15 @@ def choose_start_level():
         print("有効なステージ番号を入力してください。")
 
 
-def choose_move_limit():
+def choose_challenge_mode():
     while True:
         choice = input("手数上限チャレンジを有効にしますか？ (Y/N) > ").strip().lower()
         if choice in ("n", "no"):
-            return None
+            return False
         if choice in ("y", "yes"):
-            break
+            print("各ステージに設定された手数上限でプレイします。")
+            return True
         print("YまたはNを入力してください。")
-    while True:
-        limit = input("このステージの手数上限を入力してください > ").strip()
-        if limit.isdigit() and int(limit) > 0:
-            return int(limit)
-        print("1以上の整数を入力してください。")
 
 
 def format_level_summary(level_number, game):
@@ -217,7 +214,8 @@ def main():
     level_index = choose_start_level()
     if level_index is None:
         return
-    move_limit = choose_move_limit()
+    challenge_enabled = choose_challenge_mode()
+    move_limit = MOVE_LIMITS[level_index] if challenge_enabled else None
     game = load_level(LEVELS[level_index])
     while True:
         draw_game(game, move_limit)
@@ -229,6 +227,7 @@ def main():
                 print("全ステージクリア！")
                 break
             input("Enterを押して次へ...")
+            move_limit = MOVE_LIMITS[level_index] if challenge_enabled else None
             game = load_level(LEVELS[level_index])
             continue
         if is_move_limit_reached(game, move_limit):
