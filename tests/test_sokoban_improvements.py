@@ -6,6 +6,7 @@ from unittest.mock import patch
 from sokoban import (
     LEVELS,
     choose_start_level,
+    format_level_summary,
     is_cleared,
     is_deadlocked,
     load_level,
@@ -34,6 +35,15 @@ class SokobanImprovementTests(unittest.TestCase):
     def test_start_level_selection_can_quit(self):
         with patch("builtins.input", return_value="q"), redirect_stdout(StringIO()):
             self.assertIsNone(choose_start_level())
+
+    def test_completion_summary_includes_level_moves_and_pushes(self):
+        game = load_level(LEVELS[0])
+        game["moves"] = 12
+        game["pushes"] = 3
+        self.assertEqual(
+            format_level_summary(2, game),
+            "ステージ2の結果: 移動回数 12回 / 押した回数 3回",
+        )
 
     def test_push_count_and_undo_restore_boxes(self):
         game = load_level([

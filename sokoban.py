@@ -153,6 +153,13 @@ def choose_start_level():
         print("有効なステージ番号を入力してください。")
 
 
+def format_level_summary(level_number, game):
+    return (
+        f"ステージ{level_number}の結果: "
+        f"移動回数 {game['moves']}回 / 押した回数 {game['pushes']}回"
+    )
+
+
 def main():
     level_index = choose_start_level()
     if level_index is None:
@@ -161,7 +168,8 @@ def main():
     while True:
         draw_game(game)
         if is_cleared(game):
-            print("クリア！ 次のステージへ進みます。")
+            print("クリア！")
+            print(format_level_summary(level_index + 1, game))
             level_index += 1
             if level_index == len(LEVELS):
                 print("全ステージクリア！")
