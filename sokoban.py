@@ -179,19 +179,6 @@ def find_hint(game):
     return None
 
 
-def choose_start_level():
-    while True:
-        print("開始するステージを選んでください:")
-        for index in range(len(LEVELS)):
-            print(f"{index + 1}: ステージ {index + 1}")
-        choice = input("番号を入力 (Q: 終了) > ").strip().lower()
-        if choice == "q":
-            return None
-        if choice.isdigit() and 1 <= int(choice) <= len(LEVELS):
-            return int(choice) - 1
-        print("有効なステージ番号を入力してください。")
-
-
 def choose_challenge_mode():
     while True:
         choice = input("手数上限チャレンジを有効にしますか？ (Y/N) > ").strip().lower()
@@ -211,9 +198,7 @@ def format_level_summary(level_number, game):
 
 
 def main():
-    level_index = choose_start_level()
-    if level_index is None:
-        return
+    level_index = 0
     challenge_enabled = choose_challenge_mode()
     move_limit = MOVE_LIMITS[level_index] if challenge_enabled else None
     game = load_level(LEVELS[level_index])

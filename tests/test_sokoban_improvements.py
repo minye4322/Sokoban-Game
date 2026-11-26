@@ -6,7 +6,6 @@ from unittest.mock import patch
 from sokoban import (
     LEVELS,
     MOVE_LIMITS,
-    choose_start_level,
     choose_challenge_mode,
     format_level_summary,
     is_cleared,
@@ -14,6 +13,7 @@ from sokoban import (
     is_move_limit_reached,
     find_hint,
     load_level,
+    main,
     move_player,
     undo,
 )
@@ -32,13 +32,11 @@ class SokobanImprovementTests(unittest.TestCase):
             self.assertTrue(move_player(game, key), key)
         self.assertTrue(is_cleared(game))
 
-    def test_start_level_selection_accepts_level_number(self):
-        with patch("builtins.input", side_effect=["5", "3"]), redirect_stdout(StringIO()):
-            self.assertEqual(choose_start_level(), 2)
-
-    def test_start_level_selection_can_quit(self):
-        with patch("builtins.input", return_value="q"), redirect_stdout(StringIO()):
-            self.assertIsNone(choose_start_level())
+    def test_game_starts_at_level_one_without_level_selection(self):
+        output = StringIO()
+        with patch("builtins.input", side_effect=["n", "w", "", "q"]), redirect_stdout(output):
+            main()
+        self.assertIn("ステージ1の結果", output.getvalue())
 
     def test_completion_summary_includes_level_moves_and_pushes(self):
         game = load_level(LEVELS[0])
