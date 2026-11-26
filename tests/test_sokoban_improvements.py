@@ -1,6 +1,17 @@
+from contextlib import redirect_stdout
+from io import StringIO
 import unittest
+from unittest.mock import patch
 
-from sokoban import LEVELS, is_cleared, is_deadlocked, load_level, move_player, undo
+from sokoban import (
+    LEVELS,
+    choose_start_level,
+    is_cleared,
+    is_deadlocked,
+    load_level,
+    move_player,
+    undo,
+)
 from sokoban_exercise import apply_move, completed, new_board
 
 
@@ -15,6 +26,14 @@ class SokobanImprovementTests(unittest.TestCase):
         for key in "awawwdddssdww":
             self.assertTrue(move_player(game, key), key)
         self.assertTrue(is_cleared(game))
+
+    def test_start_level_selection_accepts_level_number(self):
+        with patch("builtins.input", side_effect=["5", "3"]), redirect_stdout(StringIO()):
+            self.assertEqual(choose_start_level(), 2)
+
+    def test_start_level_selection_can_quit(self):
+        with patch("builtins.input", return_value="q"), redirect_stdout(StringIO()):
+            self.assertIsNone(choose_start_level())
 
     def test_push_count_and_undo_restore_boxes(self):
         game = load_level([

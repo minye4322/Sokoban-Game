@@ -140,8 +140,23 @@ def is_cleared(game):
     return game["boxes"] == game["goals"]
 
 
+def choose_start_level():
+    while True:
+        print("開始するステージを選んでください:")
+        for index in range(len(LEVELS)):
+            print(f"{index + 1}: ステージ {index + 1}")
+        choice = input("番号を入力 (Q: 終了) > ").strip().lower()
+        if choice == "q":
+            return None
+        if choice.isdigit() and 1 <= int(choice) <= len(LEVELS):
+            return int(choice) - 1
+        print("有効なステージ番号を入力してください。")
+
+
 def main():
-    level_index = 0
+    level_index = choose_start_level()
+    if level_index is None:
+        return
     game = load_level(LEVELS[level_index])
     while True:
         draw_game(game)
